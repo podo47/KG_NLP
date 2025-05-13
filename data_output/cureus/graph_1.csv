@@ -1,0 +1,27 @@
+node_1|node_2|edge|chunk_id
+peter|village|lived|abf638054f5c4e37828abc3d9570851d
+peter|sheep farmers|parents|abf638054f5c4e37828abc3d9570851d
+sheep|sheep farmers|belong to|abf638054f5c4e37828abc3d9570851d
+peter|sheep|responsibility|abf638054f5c4e37828abc3d9570851d
+village|looking after sheep|requirement|abf638054f5c4e37828abc3d9570851d
+peter|boredom|experience|abf638054f5c4e37828abc3d9570851d
+sheep|company|accompaniment|abf638054f5c4e37828abc3d9570851d
+peter|tree|climbed|abf638054f5c4e37828abc3d9570851d
+peter|village|shouted to|abf638054f5c4e37828abc3d9570851d
+wolf|village|false presence of|abf638054f5c4e37828abc3d9570851d
+villagers|wolf|searched for|abf638054f5c4e37828abc3d9570851d
+peter|tree|remained in|abf638054f5c4e37828abc3d9570851d
+sheep|village|continued grazing in|abf638054f5c4e37828abc3d9570851d
+peter|sticks|hit together with|abf638054f5c4e37828abc3d9570851d
+villagers|peter's trick|responded to|abf638054f5c4e37828abc3d9570851d
+big hairy wolf|sheep|is chasing|1953d0d0f3804271bd17d7bcb46b42c3
+peter|tree|climbing|1953d0d0f3804271bd17d7bcb46b42c3
+old man|village|living in|1953d0d0f3804271bd17d7bcb46b42c3
+another villager|village|living in|1953d0d0f3804271bd17d7bcb46b42c3
+peter|wrongdoing|receiving severe telling-off for|1953d0d0f3804271bd17d7bcb46b42c3
+sheep|bleating|starting to bleat|1953d0d0f3804271bd17d7bcb46b42c3
+peter|fields|being in with the sheep|1953d0d0f3804271bd17d7bcb46b42c3
+wolf|sheep|attacks and eats|a5898d327a7c416eaf751b2c2cf35c13
+peter|villagers|failed to convince because of past lies|a5898d327a7c416eaf751b2c2cf35c13
+wolf|villagers|trustworthiness undermined by previous false alarms|a5898d327a7c416eaf751b2c2cf35c13
+sheep|hillside|left dead bodies on|a5898d327a7c416eaf751b2c2cf35c13

@@ -1,0 +1,444 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tom-select/2.0.0-rc.4/css/tom-select.min.css" integrity="sha512-43fHB3GLgZfz8QXl1RPQ8O66oIgv3po9cJ5erMt1c4QISq9dYb195T3vr5ImnJPXuVroKcGBPXBFKETW8jrPNQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/tom-select/2.0.0-rc.4/js/tom-select.complete.js" integrity="sha512-jeF9CfnvzDiw9G9xiksVjxR2lib44Gnovvkv+3CgCG6NXCD4gqlA5nDAVW5WjpA+i+/zKsUWV5xNEbW1X/HH0Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 900px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+             #config {
+                 float: left;
+                 width: 400px;
+                 height: 600px;
+             }
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+                <div id="select-menu" class="card-header">
+                    <div class="row no-gutters">
+                        <div class="col-10 pb-2">
+                            <select
+                            class="form-select"
+                            aria-label="Default select example"
+                            onchange="selectNode([value]);"
+                            id="select-node"
+                            placeholder="Select node..."
+                            >
+                                <option selected>Select a Node by ID</option>
+                                
+                                    <option value="another villager">another villager</option>
+                                
+                                    <option value="peter">peter</option>
+                                
+                                    <option value="sheep">sheep</option>
+                                
+                                    <option value="village">village</option>
+                                
+                                    <option value="big hairy wolf">big hairy wolf</option>
+                                
+                                    <option value="bleating">bleating</option>
+                                
+                                    <option value="boredom">boredom</option>
+                                
+                                    <option value="sheep farmers">sheep farmers</option>
+                                
+                                    <option value="tree">tree</option>
+                                
+                                    <option value="villagers">villagers</option>
+                                
+                                    <option value="wolf">wolf</option>
+                                
+                                    <option value="company">company</option>
+                                
+                                    <option value="fields">fields</option>
+                                
+                                    <option value="hillside">hillside</option>
+                                
+                                    <option value="looking after sheep">looking after sheep</option>
+                                
+                                    <option value="old man">old man</option>
+                                
+                                    <option value="peter's trick">peter's trick</option>
+                                
+                                    <option value="sticks">sticks</option>
+                                
+                                    <option value="wrongdoing">wrongdoing</option>
+                                
+                            </select>
+                        </div>
+                        <div class="col-2 pb-2">
+                            <button type="button" class="btn btn-primary btn-block" onclick="neighbourhoodHighlight({nodes: []});">Reset Selection</button>
+                        </div>
+                    </div>
+                </div>
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+            <div id="config"></div>
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+                  new TomSelect("#select-node",{
+                      create: false,
+                      sortField: {
+                          field: "text",
+                          direction: "asc"
+                      }
+                  });
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"group": 1, "id": "another villager", "label": "another villager", "shape": "dot", "size": 3}, {"group": 1, "id": "peter", "label": "peter", "shape": "dot", "size": 17}, {"group": 1, "id": "sheep", "label": "sheep", "shape": "dot", "size": 18}, {"group": 1, "id": "village", "label": "village", "shape": "dot", "size": 17}, {"group": 1, "id": "big hairy wolf", "label": "big hairy wolf", "shape": "dot", "size": 3}, {"group": 1, "id": "bleating", "label": "bleating", "shape": "dot", "size": 3}, {"group": 1, "id": "boredom", "label": "boredom", "shape": "dot", "size": 7}, {"group": 1, "id": "sheep farmers", "label": "sheep farmers", "shape": "dot", "size": 11}, {"group": 1, "id": "tree", "label": "tree", "shape": "dot", "size": 11}, {"group": 1, "id": "villagers", "label": "villagers", "shape": "dot", "size": 12}, {"group": 1, "id": "wolf", "label": "wolf", "shape": "dot", "size": 12}, {"group": 1, "id": "company", "label": "company", "shape": "dot", "size": 7}, {"group": 1, "id": "fields", "label": "fields", "shape": "dot", "size": 3}, {"group": 2, "id": "hillside", "label": "hillside", "shape": "dot", "size": 3}, {"group": 1, "id": "looking after sheep", "label": "looking after sheep", "shape": "dot", "size": 7}, {"group": 3, "id": "old man", "label": "old man", "shape": "dot", "size": 3}, {"group": 1, "id": "peter\u0027s trick", "label": "peter\u0027s trick", "shape": "dot", "size": 7}, {"group": 1, "id": "sticks", "label": "sticks", "shape": "dot", "size": 7}, {"group": 1, "id": "wrongdoing", "label": "wrongdoing", "shape": "dot", "size": 3}]);
+                  edges = new vis.DataSet([{"from": "another villager", "title": "contextual proximity", "to": "peter", "width": 0.75}, {"from": "another villager", "title": "contextual proximity", "to": "sheep", "width": 0.5}, {"from": "another villager", "title": "contextual proximity", "to": "village", "width": 0.5}, {"from": "big hairy wolf", "title": "contextual proximity", "to": "peter", "width": 0.75}, {"from": "big hairy wolf", "title": "contextual proximity", "to": "sheep", "width": 0.5}, {"from": "big hairy wolf", "title": "contextual proximity", "to": "village", "width": 0.5}, {"from": "bleating", "title": "contextual proximity", "to": "peter", "width": 0.75}, {"from": "bleating", "title": "starting to bleat,contextual proximity", "to": "sheep", "width": 1.5}, {"from": "bleating", "title": "contextual proximity", "to": "village", "width": 0.5}, {"from": "boredom", "title": "experience,contextual proximity", "to": "peter", "width": 3.0}, {"from": "boredom", "title": "contextual proximity", "to": "sheep", "width": 1.0}, {"from": "boredom", "title": "contextual proximity", "to": "sheep farmers", "width": 0.5}, {"from": "boredom", "title": "contextual proximity", "to": "tree", "width": 0.5}, {"from": "boredom", "title": "contextual proximity", "to": "village", "width": 1.25}, {"from": "boredom", "title": "contextual proximity", "to": "villagers", "width": 0.5}, {"from": "boredom", "title": "contextual proximity", "to": "wolf", "width": 0.5}, {"from": "company", "title": "contextual proximity", "to": "peter", "width": 2.0}, {"from": "company", "title": "accompaniment,contextual proximity", "to": "sheep", "width": 2.0}, {"from": "company", "title": "contextual proximity", "to": "sheep farmers", "width": 0.5}, {"from": "company", "title": "contextual proximity", "to": "tree", "width": 0.5}, {"from": "company", "title": "contextual proximity", "to": "village", "width": 1.25}, {"from": "company", "title": "contextual proximity", "to": "villagers", "width": 0.5}, {"from": "company", "title": "contextual proximity", "to": "wolf", "width": 0.5}, {"from": "fields", "title": "being in with the sheep,contextual proximity", "to": "peter", "width": 1.75}, {"from": "fields", "title": "contextual proximity", "to": "sheep", "width": 0.5}, {"from": "fields", "title": "contextual proximity", "to": "village", "width": 0.5}, {"from": "hillside", "title": "left dead bodies on,contextual proximity", "to": "sheep", "width": 1.5}, {"from": "hillside", "title": "contextual proximity", "to": "villagers", "width": 0.5}, {"from": "hillside", "title": "contextual proximity", "to": "wolf", "width": 0.5}, {"from": "looking after sheep", "title": "contextual proximity", "to": "peter", "width": 2.0}, {"from": "looking after sheep", "title": "contextual proximity", "to": "sheep", "width": 1.0}, {"from": "looking after sheep", "title": "contextual proximity", "to": "sheep farmers", "width": 0.5}, {"from": "looking after sheep", "title": "contextual proximity", "to": "tree", "width": 0.5}, {"from": "looking after sheep", "title": "requirement,contextual proximity", "to": "village", "width": 2.25}, {"from": "looking after sheep", "title": "contextual proximity", "to": "villagers", "width": 0.5}, {"from": "looking after sheep", "title": "contextual proximity", "to": "wolf", "width": 0.5}, {"from": "old man", "title": "contextual proximity", "to": "peter", "width": 0.75}, {"from": "old man", "title": "contextual proximity", "to": "sheep", "width": 0.5}, {"from": "old man", "title": "contextual proximity", "to": "village", "width": 0.5}, {"from": "peter", "title": "contextual proximity", "to": "peter\u0027s trick", "width": 2.0}, {"from": "peter", "title": "contextual proximity", "to": "sheep", "width": 10.0}, {"from": "peter", "title": "contextual proximity", "to": "sheep farmers", "width": 4.0}, {"from": "peter", "title": "contextual proximity", "to": "sticks", "width": 2.0}, {"from": "peter", "title": "contextual proximity", "to": "tree", "width": 4.75}, {"from": "peter", "title": "contextual proximity", "to": "village", "width": 11.5}, {"from": "peter", "title": "contextual proximity", "to": "villagers", "width": 4.5}, {"from": "peter", "title": "contextual proximity", "to": "wolf", "width": 4.5}, {"from": "peter", "title": "contextual proximity", "to": "wrongdoing", "width": 0.75}, {"from": "peter\u0027s trick", "title": "contextual proximity", "to": "sheep", "width": 1.0}, {"from": "peter\u0027s trick", "title": "contextual proximity", "to": "sheep farmers", "width": 0.5}, {"from": "peter\u0027s trick", "title": "contextual proximity", "to": "tree", "width": 0.5}, {"from": "peter\u0027s trick", "title": "contextual proximity", "to": "village", "width": 1.25}, {"from": "peter\u0027s trick", "title": "responded to,contextual proximity", "to": "villagers", "width": 1.5}, {"from": "peter\u0027s trick", "title": "contextual proximity", "to": "wolf", "width": 0.5}, {"from": "sheep", "title": "contextual proximity", "to": "sheep farmers", "width": 2.0}, {"from": "sheep", "title": "contextual proximity", "to": "sticks", "width": 1.0}, {"from": "sheep", "title": "contextual proximity", "to": "tree", "width": 2.5}, {"from": "sheep", "title": "contextual proximity", "to": "village", "width": 6.0}, {"from": "sheep", "title": "contextual proximity", "to": "villagers", "width": 3.0}, {"from": "sheep", "title": "attacks and eats,contextual proximity", "to": "wolf", "width": 4.0}, {"from": "sheep", "title": "contextual proximity", "to": "wrongdoing", "width": 0.5}, {"from": "sheep farmers", "title": "contextual proximity", "to": "sticks", "width": 0.5}, {"from": "sheep farmers", "title": "contextual proximity", "to": "tree", "width": 1.0}, {"from": "sheep farmers", "title": "contextual proximity", "to": "village", "width": 2.5}, {"from": "sheep farmers", "title": "contextual proximity", "to": "villagers", "width": 1.0}, {"from": "sheep farmers", "title": "contextual proximity", "to": "wolf", "width": 1.0}, {"from": "sticks", "title": "contextual proximity", "to": "tree", "width": 0.5}, {"from": "sticks", "title": "contextual proximity", "to": "village", "width": 1.25}, {"from": "sticks", "title": "contextual proximity", "to": "villagers", "width": 0.5}, {"from": "sticks", "title": "contextual proximity", "to": "wolf", "width": 0.5}, {"from": "tree", "title": "contextual proximity", "to": "village", "width": 3.0}, {"from": "tree", "title": "contextual proximity", "to": "villagers", "width": 1.0}, {"from": "tree", "title": "contextual proximity", "to": "wolf", "width": 1.0}, {"from": "village", "title": "contextual proximity", "to": "villagers", "width": 2.5}, {"from": "village", "title": "false presence of,contextual proximity", "to": "wolf", "width": 3.5}, {"from": "village", "title": "contextual proximity", "to": "wrongdoing", "width": 0.5}, {"from": "villagers", "title": "trustworthiness undermined by previous false alarms,contextual proximity", "to": "wolf", "width": 3.0}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": true,
+        "filter": [
+            "physics"
+        ]
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "enabled": true,
+        "forceAtlas2Based": {
+            "avoidOverlap": 0,
+            "centralGravity": 0.015,
+            "damping": 0.4,
+            "gravitationalConstant": -31,
+            "springConstant": 0.08,
+            "springLength": 100
+        },
+        "solver": "forceAtlas2Based",
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+                  // if this network requires displaying the configure window,
+                  // put it in its div
+                  options.configure["container"] = document.getElementById("config");
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+                    network.on("selectNode", neighbourhoodHighlight);
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>
