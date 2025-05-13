@@ -67,6 +67,7 @@ def graphPrompt(input: str, metadata={}, model="mistral-openorca:latest"):
     try:
         result = json.loads(response)
         result = [dict(item, **metadata) for item in result]
+
     except:
         print("\n\nERROR ### Here is the buggy response: ", response, "\n\n")
         result = None
